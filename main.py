@@ -4,232 +4,232 @@ from typing import List, Tuple
 import random
 import time
 
-class TouristRoute:
-    def __init__(self, num_points: int = 20):
-        """Initialize tourist points with random coordinates and visit times"""
-        self.num_points = num_points
-        # Generate random coordinates for tourist points
-        self.coordinates = np.random.rand(num_points, 2) * 100
-        # Generate random visit times between 1 and 3 hours
-        self.visit_times = np.random.uniform(1, 3, num_points)
+class RutaTuristica:
+    def __init__(self, num_puntos: int = 20):
+        """Inicializa puntos turísticos con coordenadas aleatorias y tiempos de visita"""
+        self.num_puntos = num_puntos
+        # Genera coordenadas aleatorias para puntos turísticos
+        self.coordenadas = np.random.rand(num_puntos, 2) * 100
+        # Genera tiempos de visita aleatorios entre 1 y 3 horas
+        self.tiempos_visita = np.random.uniform(1, 3, num_puntos)
         
-    def calculate_total_time(self, route: List[int]) -> float:
-        """Calculate total time including travel and visit times"""
-        total_time = 0
-        for i in range(len(route)):
-            # Add visit time for current point
-            total_time += self.visit_times[route[i]]
-            # Add travel time to next point
-            if i < len(route) - 1:
-                total_time += self.calculate_distance(route[i], route[i + 1])
-        return total_time
+    def calcular_tiempo_total(self, ruta: List[int]) -> float:
+        """Calcula tiempo total incluyendo viajes y visitas"""
+        tiempo_total = 0
+        for i in range(len(ruta)):
+            # Añade tiempo de visita para el punto actual
+            tiempo_total += self.tiempos_visita[ruta[i]]
+            # Añade tiempo de viaje al siguiente punto
+            if i < len(ruta) - 1:
+                tiempo_total += self.calcular_distancia(ruta[i], ruta[i + 1])
+        return tiempo_total
 
-    def calculate_distance(self, point1: int, point2: int) -> float:
-        """Calculate Euclidean distance between two points"""
-        return np.sqrt(np.sum((self.coordinates[point1] - self.coordinates[point2]) ** 2))
+    def calcular_distancia(self, punto1: int, punto2: int) -> float:
+        """Calcula distancia euclidiana entre dos puntos"""
+        return np.sqrt(np.sum((self.coordenadas[punto1] - self.coordenadas[punto2]) ** 2))
 
-class MemeticAlgorithm:
+class AlgoritmoMemetico:
     def __init__(self, 
-                 tourist_route: TouristRoute,
-                 population_size: int = 100,
-                 generations: int = 1000,
-                 mutation_rate: float = 0.1,
-                 local_search_frequency: int = 10,
-                 local_search_subset: float = 0.2,
-                 lamarckian: bool = True):
-        self.tourist_route = tourist_route
-        self.population_size = population_size
-        self.generations = generations
-        self.mutation_rate = mutation_rate
-        self.local_search_frequency = local_search_frequency
-        self.local_search_subset = local_search_subset
-        self.lamarckian = lamarckian
-        self.best_fitness_history = []
-        self.avg_fitness_history = []
+                 ruta_turistica: RutaTuristica,
+                 tamano_poblacion: int = 100,
+                 generaciones: int = 1000,
+                 tasa_mutacion: float = 0.1,
+                 frecuencia_busqueda_local: int = 10,
+                 subconjunto_busqueda_local: float = 0.2,
+                 lamarckiano: bool = True):
+        self.ruta_turistica = ruta_turistica
+        self.tamano_poblacion = tamano_poblacion
+        self.generaciones = generaciones
+        self.tasa_mutacion = tasa_mutacion
+        self.frecuencia_busqueda_local = frecuencia_busqueda_local
+        self.subconjunto_busqueda_local = subconjunto_busqueda_local
+        self.lamarckiano = lamarckiano
+        self.historial_mejor_aptitud = []
+        self.historial_aptitud_promedio = []
         
-    def initialize_population(self) -> List[List[int]]:
-        """Create initial population of random permutations"""
-        population = []
-        for _ in range(self.population_size):
-            route = list(range(self.tourist_route.num_points))
-            random.shuffle(route)
-            population.append(route)
-        return population
+    def inicializar_poblacion(self) -> List[List[int]]:
+        """Crea población inicial de permutaciones aleatorias"""
+        poblacion = []
+        for _ in range(self.tamano_poblacion):
+            ruta = list(range(self.ruta_turistica.num_puntos))
+            random.shuffle(ruta)
+            poblacion.append(ruta)
+        return poblacion
 
-    def fitness(self, route: List[int]) -> float:
-        """Calculate fitness (inverse of total time)"""
-        total_time = self.tourist_route.calculate_total_time(route)
-        return 1.0 / total_time
+    def aptitud(self, ruta: List[int]) -> float:
+        """Calcula aptitud (inverso del tiempo total)"""
+        tiempo_total = self.ruta_turistica.calcular_tiempo_total(ruta)
+        return 1.0 / tiempo_total
 
-    def tournament_selection(self, population: List[List[int]], tournament_size: int = 3) -> List[int]:
-        """Select individual using tournament selection"""
-        tournament = random.sample(population, tournament_size)
-        return max(tournament, key=self.fitness)
+    def seleccion_torneo(self, poblacion: List[List[int]], tamano_torneo: int = 3) -> List[int]:
+        """Selecciona individuo usando selección por torneo"""
+        torneo = random.sample(poblacion, tamano_torneo)
+        return max(torneo, key=self.aptitud)
 
-    def order_crossover(self, parent1: List[int], parent2: List[int]) -> List[int]:
-        """Implement Order Crossover (OX) for permutation"""
-        size = len(parent1)
-        start, end = sorted(random.sample(range(size), 2))
+    def cruce_orden(self, padre1: List[int], padre2: List[int]) -> List[int]:
+        """Implementa Cruce de Orden (OX) para permutación"""
+        tamano = len(padre1)
+        inicio, fin = sorted(random.sample(range(tamano), 2))
         
-        # Initialize offspring with empty values
-        offspring = [-1] * size
+        # Inicializa descendiente con valores vacíos
+        descendiente = [-1] * tamano
         
-        # Copy segment from parent1
-        offspring[start:end] = parent1[start:end]
+        # Copia segmento del padre1
+        descendiente[inicio:fin] = padre1[inicio:fin]
         
-        # Fill remaining positions with elements from parent2
-        current_pos = end
-        for item in parent2[end:] + parent2[:end]:
-            if item not in offspring:
-                offspring[current_pos % size] = item
-                current_pos += 1
+        # Rellena posiciones restantes con elementos del padre2
+        pos_actual = fin
+        for elemento in padre2[fin:] + padre2[:fin]:
+            if elemento not in descendiente:
+                descendiente[pos_actual % tamano] = elemento
+                pos_actual += 1
                 
-        return offspring
+        return descendiente
 
-    def swap_mutation(self, route: List[int]) -> List[int]:
-        """Apply swap mutation with given probability"""
-        if random.random() < self.mutation_rate:
-            i, j = random.sample(range(len(route)), 2)
-            route[i], route[j] = route[j], route[i]
-        return route
+    def mutacion_intercambio(self, ruta: List[int]) -> List[int]:
+        """Aplica mutación de intercambio con probabilidad dada"""
+        if random.random() < self.tasa_mutacion:
+            i, j = random.sample(range(len(ruta)), 2)
+            ruta[i], ruta[j] = ruta[j], ruta[i]
+        return ruta
 
-    def local_search_2opt(self, route: List[int], max_iterations: int = 100) -> List[int]:
-        """Apply 2-opt local search to improve route"""
-        best_route = route.copy()
-        best_time = self.tourist_route.calculate_total_time(best_route)
-        improved = True
-        iteration = 0
+    def busqueda_local_2opt(self, ruta: List[int], max_iteraciones: int = 100) -> List[int]:
+        """Aplica búsqueda local 2-opt para mejorar ruta"""
+        mejor_ruta = ruta.copy()
+        mejor_tiempo = self.ruta_turistica.calcular_tiempo_total(mejor_ruta)
+        mejorado = True
+        iteracion = 0
         
-        while improved and iteration < max_iterations:
-            improved = False
-            iteration += 1
+        while mejorado and iteracion < max_iteraciones:
+            mejorado = False
+            iteracion += 1
             
-            for i in range(1, len(route) - 2):
-                for j in range(i + 1, len(route)):
-                    new_route = best_route.copy()
-                    new_route[i:j] = new_route[i:j][::-1]  # Reverse segment
-                    new_time = self.tourist_route.calculate_total_time(new_route)
+            for i in range(1, len(ruta) - 2):
+                for j in range(i + 1, len(ruta)):
+                    nueva_ruta = mejor_ruta.copy()
+                    nueva_ruta[i:j] = nueva_ruta[i:j][::-1]  # Invierte segmento
+                    nuevo_tiempo = self.ruta_turistica.calcular_tiempo_total(nueva_ruta)
                     
-                    if new_time < best_time:
-                        best_route = new_route
-                        best_time = new_time
-                        improved = True
+                    if nuevo_tiempo < mejor_tiempo:
+                        mejor_ruta = nueva_ruta
+                        mejor_tiempo = nuevo_tiempo
+                        mejorado = True
                         break
-                if improved:
+                if mejorado:
                     break
                     
-        return best_route
+        return mejor_ruta
 
-    def apply_local_search(self, population: List[List[int]], generation: int) -> List[List[int]]:
-        """Apply local search based on strategy (static or dynamic)"""
-        if self.local_search_frequency == 0:  # Static strategy
-            if generation == self.generations - 1:
-                population = [self.local_search_2opt(route) for route in population]
-        else:  # Dynamic strategy
-            if generation % self.local_search_frequency == 0:
-                num_individuals = int(self.population_size * self.local_search_subset)
-                indices = random.sample(range(self.population_size), num_individuals)
+    def aplicar_busqueda_local(self, poblacion: List[List[int]], generacion: int) -> List[List[int]]:
+        """Aplica búsqueda local según estrategia (estática o dinámica)"""
+        if self.frecuencia_busqueda_local == 0:  # Estrategia estática
+            if generacion == self.generaciones - 1:
+                poblacion = [self.busqueda_local_2opt(ruta) for ruta in poblacion]
+        else:  # Estrategia dinámica
+            if generacion % self.frecuencia_busqueda_local == 0:
+                num_individuos = int(self.tamano_poblacion * self.subconjunto_busqueda_local)
+                indices = random.sample(range(self.tamano_poblacion), num_individuos)
                 for idx in indices:
-                    improved_route = self.local_search_2opt(population[idx])
-                    if self.lamarckian:
-                        population[idx] = improved_route
-                    else:  # Baldwinian model
-                        if self.fitness(improved_route) > self.fitness(population[idx]):
-                            population[idx] = improved_route
-        return population
+                    ruta_mejorada = self.busqueda_local_2opt(poblacion[idx])
+                    if self.lamarckiano:
+                        poblacion[idx] = ruta_mejorada
+                    else:  # Modelo Baldwiniano
+                        if self.aptitud(ruta_mejorada) > self.aptitud(poblacion[idx]):
+                            poblacion[idx] = ruta_mejorada
+        return poblacion
 
-    def evolve(self) -> Tuple[List[int], List[float], List[float]]:
-        """Run the memetic algorithm"""
-        population = self.initialize_population()
-        best_solution = None
-        best_fitness = float('-inf')
+    def evolucionar(self) -> Tuple[List[int], List[float], List[float]]:
+        """Ejecuta el algoritmo memético"""
+        poblacion = self.inicializar_poblacion()
+        mejor_solucion = None
+        mejor_aptitud = float('-inf')
         
-        for generation in range(self.generations):
-            # Apply local search
-            population = self.apply_local_search(population, generation)
+        for generacion in range(self.generaciones):
+            # Aplica búsqueda local
+            poblacion = self.aplicar_busqueda_local(poblacion, generacion)
             
-            # Create new population
-            new_population = []
+            # Crea nueva población
+            nueva_poblacion = []
             
-            # Elitism - keep best individual
-            elite = max(population, key=self.fitness)
-            new_population.append(elite)
+            # Elitismo - mantiene mejor individuo
+            elite = max(poblacion, key=self.aptitud)
+            nueva_poblacion.append(elite)
             
-            # Generate rest of new population
-            while len(new_population) < self.population_size:
-                parent1 = self.tournament_selection(population)
-                parent2 = self.tournament_selection(population)
-                offspring = self.order_crossover(parent1, parent2)
-                offspring = self.swap_mutation(offspring)
-                new_population.append(offspring)
+            # Genera resto de nueva población
+            while len(nueva_poblacion) < self.tamano_poblacion:
+                padre1 = self.seleccion_torneo(poblacion)
+                padre2 = self.seleccion_torneo(poblacion)
+                descendiente = self.cruce_orden(padre1, padre2)
+                descendiente = self.mutacion_intercambio(descendiente)
+                nueva_poblacion.append(descendiente)
             
-            population = new_population
+            poblacion = nueva_poblacion
             
-            # Track statistics
-            current_fitnesses = [self.fitness(route) for route in population]
-            best_current = max(current_fitnesses)
-            avg_current = sum(current_fitnesses) / len(current_fitnesses)
+            # Registra estadísticas
+            aptitudes_actuales = [self.aptitud(ruta) for ruta in poblacion]
+            mejor_actual = max(aptitudes_actuales)
+            promedio_actual = sum(aptitudes_actuales) / len(aptitudes_actuales)
             
-            self.best_fitness_history.append(best_current)
-            self.avg_fitness_history.append(avg_current)
+            self.historial_mejor_aptitud.append(mejor_actual)
+            self.historial_aptitud_promedio.append(promedio_actual)
             
-            if best_current > best_fitness:
-                best_fitness = best_current
-                best_solution = population[current_fitnesses.index(best_current)]
+            if mejor_actual > mejor_aptitud:
+                mejor_aptitud = mejor_actual
+                mejor_solucion = poblacion[aptitudes_actuales.index(mejor_actual)]
                 
-        return best_solution, self.best_fitness_history, self.avg_fitness_history
+        return mejor_solucion, self.historial_mejor_aptitud, self.historial_aptitud_promedio
 
-def compare_algorithms():
-    """Compare different algorithm variants"""
+def comparar_algoritmos():
+    """Compara diferentes variantes del algoritmo"""
     np.random.seed(42)
     random.seed(42)
     
-    # Problem instance
-    tourist_problem = TouristRoute(num_points=20)
+    # Instancia del problema
+    problema_turistico = RutaTuristica(num_puntos=20)
     
-    # Algorithm variants
-    variants = [
-        ("Genetic Algorithm", {"local_search_frequency": 0}),
-        ("Static Memetic (Lamarckian)", {"local_search_frequency": 0, "lamarckian": True}),
-        ("Dynamic Memetic (Baldwinian)", {"local_search_frequency": 10, "lamarckian": False})
+    # Variantes del algoritmo
+    variantes = [
+        ("Algoritmo Genético", {"frecuencia_busqueda_local": 0}),
+        ("Memético Estático (Lamarckiano)", {"frecuencia_busqueda_local": 0, "lamarckiano": True}),
+        ("Memético Dinámico (Baldwiniano)", {"frecuencia_busqueda_local": 10, "lamarckiano": False})
     ]
     
-    results = {}
+    resultados = {}
     
-    for name, params in variants:
-        print(f"\nRunning {name}...")
-        start_time = time.time()
+    for nombre, params in variantes:
+        print(f"\nEjecutando {nombre}...")
+        tiempo_inicio = time.time()
         
-        algorithm = MemeticAlgorithm(tourist_problem, **params)
-        best_route, best_history, avg_history = algorithm.evolve()
+        algoritmo = AlgoritmoMemetico(problema_turistico, **params)
+        mejor_ruta, historial_mejor, historial_promedio = algoritmo.evolucionar()
         
-        execution_time = time.time() - start_time
-        final_time = tourist_problem.calculate_total_time(best_route)
+        tiempo_ejecucion = time.time() - tiempo_inicio
+        tiempo_final = problema_turistico.calcular_tiempo_total(mejor_ruta)
         
-        results[name] = {
-            "best_route": best_route,
-            "final_time": final_time,
-            "execution_time": execution_time,
-            "best_history": best_history,
-            "avg_history": avg_history
+        resultados[nombre] = {
+            "mejor_ruta": mejor_ruta,
+            "tiempo_final": tiempo_final,
+            "tiempo_ejecucion": tiempo_ejecucion,
+            "historial_mejor": historial_mejor,
+            "historial_promedio": historial_promedio
         }
         
-        print(f"Final route time: {final_time:.2f}")
-        print(f"Execution time: {execution_time:.2f} seconds")
+        print(f"Tiempo final de ruta: {tiempo_final:.2f}")
+        print(f"Tiempo de ejecución: {tiempo_ejecucion:.2f} segundos")
     
-    # Plot convergence comparison
+    # Grafica comparación de convergencia
     plt.figure(figsize=(12, 6))
-    for name, data in results.items():
-        plt.plot(data["best_history"], label=f"{name} (Best)")
-    plt.xlabel("Generation")
-    plt.ylabel("Fitness")
-    plt.title("Convergence Comparison")
+    for nombre, datos in resultados.items():
+        plt.plot(datos["historial_mejor"], label=f"{nombre} (Mejor)")
+    plt.xlabel("Generación")
+    plt.ylabel("Aptitud")
+    plt.title("Comparación de Convergencia")
     plt.legend()
     plt.grid(True)
-    plt.savefig("convergence_comparison.png")
+    plt.savefig("comparacion_convergencia.png")
     plt.close()
     
-    return results
+    return resultados
 
 if __name__ == "__main__":
-    results = compare_algorithms()
+    resultados = comparar_algoritmos()
